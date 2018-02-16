@@ -1,3 +1,15 @@
+'use strict';
+
+
+(function() {
+   // your page initialization code here
+   // the DOM will be available here
+
+   setupLangs();
+   showInfo('info_start');
+
+})();
+
 
 var langs =
  ['English',         ['en-AU', 'Australia'],
@@ -8,13 +20,17 @@ var langs =
                      ['en-GB', 'United Kingdom'],
                      ['en-US', 'United States']];
 
-for (var i = 0; i < langs.length; i++) {
-  select_language.options[i] = new Option(langs[i][0], i);
+
+function setupLangs() {
+
+  for (var i = 0; i < langs.length; i++) {
+    select_language.options[i] = new Option(langs[i][0], i);
+  }
+  select_language.selectedIndex = 0;
+  updateCountry();
+  select_dialect.selectedIndex = 6;
 }
-select_language.selectedIndex = 0;
-updateCountry();
-select_dialect.selectedIndex = 6;
-showInfo('info_start');
+
 
 
 
@@ -30,6 +46,10 @@ function updateCountry() {
   }
   select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
 }
+
+
+
+
 
 var final_transcript = '';
 var recognizing = false;
