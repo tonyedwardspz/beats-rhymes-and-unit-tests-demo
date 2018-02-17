@@ -1,27 +1,27 @@
 'use strict';
 
-function setupStartButton() {
+let setupStartButton = () => {
   app.startButton.addEventListener('click', function (e) {
     startButton(e);
   });
-}
+};
 
-function upgrade() {
+let upgrade = () => {
   app.start_button.style.visibility = 'hidden';
   showInfo('info_upgrade');
-}
+};
 
-function linebreak(s) {
+let linebreak = (s) => {
   return s.replace(/\n\n/g, '<p></p>').replace(/\n/g, '<br>');
-}
+};
 
-function capitalize(s) {
+let capitalize = (s) => {
   return s.replace(/\S/, function(m) { return m.toUpperCase(); });
-}
+};
 
-function showInfo(s) {
+let showInfo = (s) => {
   if (s) {
-    for (var child = info.firstChild; child; child = child.nextSibling) {
+    for (let child = info.firstChild; child; child = child.nextSibling) {
       if (child.style) {
         child.style.display = child.id == s ? 'inline' : 'none';
       }
@@ -30,4 +30,4 @@ function showInfo(s) {
   } else {
     info.style.visibility = 'hidden';
   }
-}
+};

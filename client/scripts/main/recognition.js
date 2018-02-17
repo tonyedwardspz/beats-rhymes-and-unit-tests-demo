@@ -1,10 +1,11 @@
 'use strict';
 
-function setupRecognition() {
+let setupRecognition = () => {
 
   app.recognition.continuous = true;
   app.recognition.interimResults = true;
-  app.recognition.lang = app.selectLanguage[app.selectLanguage.selectedIndex].value;
+  let languageIndex = app.selectLanguage.selectedIndex;
+  app.recognition.lang = app.selectLanguage[languageIndex].value;
 
   app.recognition.onstart = function() {
     app.recognizing = true;
@@ -15,7 +16,8 @@ function setupRecognition() {
   app.recognition.onerror = function(event) {
     if (event.error === 'no-speech' || event.error === 'audio-capture') {
       app.startImage.src = 'images/mic.gif';
-      event.error = 'no-speech' ? showInfo('info_no_speech') : showInfo('info_no_microphone');
+      event.error = 'no-speech' ? showInfo('info_no_speech') :
+                                  showInfo('info_no_microphone');
     }
     if (event.error === 'not-allowed') {
       if (event.timeStamp - app.recognitionTimeStamp < 100) {
@@ -40,15 +42,15 @@ function setupRecognition() {
     showInfo('');
     if (window.getSelection) {
       window.getSelection().removeAllRanges();
-      var range = document.createRange();
+      let range = document.createRange();
       range.selectNode(document.getElementById('final_span'));
       window.getSelection().addRange(range);
     }
   };
 
   app.recognition.onresult = function(event) {
-    var interim_transcript = '';
-    for (var i = event.resultIndex; i < event.results.length; ++i) {
+    let interim_transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         app.finalTranscript += event.results[i][0].transcript;
       } else {
@@ -64,9 +66,9 @@ function setupRecognition() {
     }
 
   };
-}
+};
 
-function startButton(event) {
+let startButton = (event) => {
   if (app.recognizing) {
     app.recognition.stop();
     return;
@@ -79,4 +81,4 @@ function startButton(event) {
   app.startImage.src = 'images/mic-slash.gif';
   showInfo('info_allow');
   app.reconitionTimeStamp = event.timeStamp;
-}
+};
