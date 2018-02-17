@@ -9,7 +9,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "mocha tests --recursive"
   },
   "repository": {
     "type": "git",

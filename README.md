@@ -49,11 +49,6 @@ gulp debug
 ### Other tasks
 There are a couple other tasks you may wish to run:
 
-#### Tests
-
-To run the projects tests use the command `npm test`. This will execute some good 'ol assertion tests which require the
-building of the project.
-
 #### Documentation
 
 To generate the project's documentation, run the command `gulp doc`. The documentation
