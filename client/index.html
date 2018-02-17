@@ -40,18 +40,15 @@
     </div>
 
     <div class="center">
-      <div class="sidebyside" style="text-align:right">
-        <button id="copy_button" class="button">
-          Copy and Paste</button>
-        <div id="copy_info" class="info">
-          Press Control-C to copy text.<br>(Command-C on Mac.)
-        </div>
-      </div>
-      <p>
+
       <div id="div_language">
-        <select id="select_language" onchange="updateCountry()"></select>
-        &nbsp;&nbsp;
-        <select id="select_dialect"></select>
+        <select id="select_language">
+          <option value="en-AU">Australia</option>
+          <option value="en-CA">Canada</option>
+          <option value="en-NZ">New Zealand</option>
+          <option value="en-GB" selected>United Kingdom</option>
+          <option value="en-US">United State</option>
+        </select>
       </div>
     </div>
 
