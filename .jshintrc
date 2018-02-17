@@ -1,0 +1,37 @@
+{
+  "strict": "global",
+  "esversion": 6,
+  "quotmark": "single",
+  "undef": true,
+  "curly": true,
+  "eqeqeq": true,
+  "browser": true,
+  "devel": true,
+  "node": true,
+
+  "globals": {
+    "app": true,
+    "capitalize": true,
+    "setupStartButton": true,
+    "showInfo": true,
+    "setupRecognition": true,
+    "upgrade": true,
+    "startButton": true,
+    "showInfo": true,
+    "linebreak": true,
+    "info": true,
+    "tamarJoke": true,
+
+    "require": true,
+    "module": true,
+
+    "describe": true,
+    "it": true,
+    "QUnit": true,
+    "Database": true,
+    "fetch": true,
+    "sortByDate": true,
+
+    "webkitSpeechRecognition": true
+  }
+}

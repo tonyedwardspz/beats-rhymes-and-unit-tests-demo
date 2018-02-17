@@ -1,5 +1,7 @@
+'use strict';
+
 function setupStartButton() {
-  app.start_button.addEventListener('click', function (e) {
+  app.startButton.addEventListener('click', function (e) {
     startButton(e);
   });
 }

@@ -7,11 +7,17 @@ var app;
 
    app = {
      selectLanguage: document.getElementById('select_language'),
-     start_button: document.getElementById('start_button'),
+     startButton: document.getElementById('start_button'),
+     startImage: document.getElementById('start_img'),
+     finalSpan: document.getElementById('final_span'),
+     interimSpan: document.getElementById('interim_span'),
 
      recognition: new webkitSpeechRecognition(),
      recognitionAvailable: 'webkitSpeechRecognition' in window,
      recognizing: false,
+     recognitionTimeStamp: null,
+     recognitionIgnoreOneEnd: null,
+     finalTranscript: '',
 
      doTamarJoke: true,
      doneTamarJoke: false
@@ -23,6 +29,6 @@ var app;
    // Show the start info
    showInfo('info_start');
 
-   // Begin the reconition magic
-   setupRecognition();
+   // Start the recognition service if recognitionAvailable
+   app.recognitionAvailable ? setupRecognition() : upgrade();
 })();
