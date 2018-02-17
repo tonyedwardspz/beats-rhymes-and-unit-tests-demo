@@ -45,14 +45,8 @@
   .right {
     float: right;
   }
-  .sidebyside {
-    display: inline-block;
-    width: 45%;
-    min-height: 40px;
-    text-align: left;
-    vertical-align: top;
-  }
-  #headline {
+
+h1 {
     font-size: 40px;
     font-weight: 300;
   }
