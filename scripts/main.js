@@ -1,50 +1,70 @@
 'use strict';
 
+var app,
+    langs = ['English', ['en-AU', 'Australia'],
+                        ['en-CA', 'Canada'],
+                        ['en-IN', 'India'],
+                        ['en-NZ', 'New Zealand'],
+                        ['en-ZA', 'South Africa'],
+                        ['en-GB', 'United Kingdom'],
+                        ['en-US', 'United States']];
 
 (function() {
-   // your page initialization code here
-   // the DOM will be available here
+   console.info('APP is loading');
 
+   app = {
+     select_language: document.getElementById('select_language'),
+     select_dialect: document.getElementById('select_dialect'),
+     start_button: document.getElementById('start_button'),
+     copy_button: document.getElementById('copy_button'),
+
+     recognition: new webkitSpeechRecognition(),
+     recognitionAvailable: 'webkitSpeechRecognition' in window,
+     recognizing: false,
+
+     tamarJoke: true
+   };
+
+   // Setup the language boxes
    setupLangs();
-   showInfo('info_start');
 
+   // Add listener to the start button
+   setupStartButton();
+
+   // Show the start info
+   showInfo('info_start');
 })();
 
-
-var langs =
- ['English',         ['en-AU', 'Australia'],
-                     ['en-CA', 'Canada'],
-                     ['en-IN', 'India'],
-                     ['en-NZ', 'New Zealand'],
-                     ['en-ZA', 'South Africa'],
-                     ['en-GB', 'United Kingdom'],
-                     ['en-US', 'United States']];
-
-
 function setupLangs() {
-
   for (var i = 0; i < langs.length; i++) {
-    select_language.options[i] = new Option(langs[i][0], i);
+    app.select_language.options[i] = new Option(langs[i][0], i);
   }
-  select_language.selectedIndex = 0;
+  app.select_language.selectedIndex = 0;
   updateCountry();
-  select_dialect.selectedIndex = 6;
+  app.select_dialect.selectedIndex = 6;
 }
 
+function setupStartButton() {
+  app.start_button.addEventListener('click', function (e) {
+    startButton(e);
+  });
+}
 
-
-
-
+function setupCopyButton(){
+  app.copy_button.addEventListener('click', function (e) {
+    copyButton(e);
+  });
+}
 
 function updateCountry() {
-  for (var i = select_dialect.options.length - 1; i >= 0; i--) {
-    select_dialect.remove(i);
+  for (var i = app.select_dialect.options.length - 1; i >= 0; i--) {
+    app.select_dialect.remove(i);
   }
-  var list = langs[select_language.selectedIndex];
+  var list = langs[app.select_language.selectedIndex];
   for (var i = 1; i < list.length; i++) {
-    select_dialect.options.add(new Option(list[i][1], list[i][0]));
+    app.select_dialect.options.add(new Option(list[i][1], list[i][0]));
   }
-  select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
+  app.select_dialect.style.visibility = list[1].length == 1 ? 'hidden' : 'visible';
 }
 
 
@@ -52,24 +72,23 @@ function updateCountry() {
 
 
 var final_transcript = '';
-var recognizing = false;
 var ignore_onend;
 var start_timestamp;
-if (!('webkitSpeechRecognition' in window)) {
+if (!app.recognitionAvailable) {
   upgrade();
 } else {
-  start_button.style.display = 'inline-block';
-  var recognition = new webkitSpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
+  app.start_button.style.display = 'inline-block';
+  app.recognition = new webkitSpeechRecognition();
+  app.recognition.continuous = true;
+  app.recognition.interimResults = true;
 
-  recognition.onstart = function() {
-    recognizing = true;
+  app.recognition.onstart = function() {
+    app.recognizing = true;
     showInfo('info_speak_now');
     start_img.src = 'images/mic-animate.gif';
   };
 
-  recognition.onerror = function(event) {
+  app.recognition.onerror = function(event) {
     if (event.error == 'no-speech') {
       start_img.src = 'images/mic.gif';
       showInfo('info_no_speech');
@@ -90,8 +109,8 @@ if (!('webkitSpeechRecognition' in window)) {
     }
   };
 
-  recognition.onend = function() {
-    recognizing = false;
+  app.recognition.onend = function() {
+    app.recognizing = false;
     if (ignore_onend) {
       return;
     }
@@ -109,8 +128,7 @@ if (!('webkitSpeechRecognition' in window)) {
     }
   };
 
-  var tamarJoke = false;
-  recognition.onresult = function(event) {
+  app.recognition.onresult = function(event) {
     var interim_transcript = '';
     for (var i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
@@ -124,11 +142,11 @@ if (!('webkitSpeechRecognition' in window)) {
     interim_span.innerHTML = linebreak(interim_transcript);
 
 
-    if (interim_transcript.includes('where is the grass greener') && !tamarJoke) {
+    if (interim_transcript.includes('where is the grass greener') && !app.tamarJoke) {
       // speech sythasis addon
       var utter = new SpeechSynthesisUtterance("The grass is always greener on the other side of the tamar. Cornwall is ansum");
       window.speechSynthesis.speak(utter);
-      tamarJoke = true;
+      app.tamarJoke = true;
     }
     if (final_transcript || interim_transcript) {
       showButtons('inline-block');
@@ -137,7 +155,7 @@ if (!('webkitSpeechRecognition' in window)) {
 }
 
 function upgrade() {
-  start_button.style.visibility = 'hidden';
+  app.start_button.style.visibility = 'hidden';
   showInfo('info_upgrade');
 }
 
@@ -153,23 +171,24 @@ function capitalize(s) {
 }
 
 function copyButton() {
-  if (recognizing) {
-    recognizing = false;
-    recognition.stop();
+  if (app.recognizing) {
+    app.recognizing = false;
+    app.recognition.stop();
   }
-  copy_button.style.display = 'none';
+  app.catch((err) => {})
+  app.copy_button.style.display = 'none';
   copy_info.style.display = 'inline-block';
   showInfo('');
 }
 
 function startButton(event) {
-  if (recognizing) {
-    recognition.stop();
+  if (app.recognizing) {
+    app.recognition.stop();
     return;
   }
   final_transcript = '';
-  recognition.lang = select_dialect.value;
-  recognition.start();
+  app.recognition.lang = app.select_dialect.value;
+  app.recognition.start();
   ignore_onend = false;
   final_span.innerHTML = '';
   interim_span.innerHTML = '';
@@ -198,6 +217,6 @@ function showButtons(style) {
     return;
   }
   current_style = style;
-  copy_button.style.display = style;
+  app.copy_button.style.display = style;
   copy_info.style.display = 'none';
 }
