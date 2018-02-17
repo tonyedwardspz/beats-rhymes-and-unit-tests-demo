@@ -12,7 +12,6 @@ gulp.task('default', function(cb) {
     'clean',
     allTasks,
     'styles',
-    'serviceworker',
     cb);
 });
 

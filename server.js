@@ -2,14 +2,9 @@
 
 var express = require('express');
 
-// Load environmental variables (only applied to dev environment)
-if (!process.env.PRODUCTION) {
-  require('dotenv').config();
-}
-
 // Configure the express app
 var app = express();
-require('./server/config/express')(app, __dirname);
+require('./server/config/express')(app, __dirname, express);
 
 // Load route configuration
 require('./server/config/routes')(app, __dirname);

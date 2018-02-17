@@ -16,7 +16,7 @@ gulp.task('styles:watch', function() {
 
 gulp.task('styles:sass', function() {
   return gulp.src(['./client/styles/style.scss'])
-    .pipe(concat('inline.scss'))
+    .pipe(concat('style.scss'))
     .pipe(sass().on('error', sass.logError))
     .pipe(autoprefixer([
       'ie >= 10',
@@ -35,7 +35,7 @@ gulp.task('styles:sass', function() {
 
 gulp.task('styles:inline', ['html', 'styles:sass'], function(){
   let indexContents = fs.readFileSync('./client/index.html', 'utf8').replace(/INLINE-CSS/g, function() {
-    let style = fs.readFileSync('./public/styles/inline.css', 'utf8');
+    let style = fs.readFileSync('./public/styles/style.css', 'utf8');
     return '<style>\n' + style + '\n</style>';
   });
   del('./public/index.html', {dot: false});
