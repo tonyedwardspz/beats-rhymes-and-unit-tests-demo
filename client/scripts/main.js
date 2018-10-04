@@ -19,8 +19,9 @@ var app;
      recognitionIgnoreOneEnd: null,
      finalTranscript: '',
 
-     doTamarJoke: true,
-     doneTamarJoke: false
+     doTamarJoke: false,
+     doM25Joke: true,
+     doneJoke: false
    };
 
    // Add listener to the start button
@@ -28,6 +29,8 @@ var app;
 
    // Show the start info
    showInfo('info_start');
+
+   console.log('Joke');
 
    // Start the recognition service if recognitionAvailable
    app.recognitionAvailable ? setupRecognition() : upgrade();

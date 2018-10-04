@@ -62,7 +62,11 @@ let setupRecognition = () => {
     app.interimSpan.innerHTML = linebreak(interim_transcript);
 
     if (app.doTamarJoke){
+      console.log('doing tamar joke');
       tamarJoke(interim_transcript);
+    } else if (app.doM25Joke){
+      console.log('doing M25 joke');
+      m25Joke(interim_transcript);
     }
 
   };
