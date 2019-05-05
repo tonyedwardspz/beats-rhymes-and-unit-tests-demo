@@ -56,9 +56,7 @@ can be found in the `./doc/gen` folder, with `index.html` as the starting point.
 
 ## Contributing
 
-Contributions / pull requests etc are not accepted without being discussed via GitHub issues. This is a university project and
-that would break guidelines. If you see something that I can improve please get in touch
-initially on [twitter](https://twitter.com/tonyedwardspz).
+Contributions / pull requests etc are not accepted without being discussed via GitHub issues.
 
 ## Author
 - *Tony Edwards*
