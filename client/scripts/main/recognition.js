@@ -67,8 +67,13 @@ let setupRecognition = () => {
     } else if (app.doM25Joke){
       console.log('doing M25 joke');
       m25Joke(interim_transcript);
+    } else if (app.doEUJoke){
+      console.log('doing EU joke');
+      euJoke(interim_transcript);
+    } else if (app.doFrontendLoveJoke){
+      console.log('doing Frontend Developer Love joke');
+      frontendDeveloperLoveJoke(interim_transcript);
     }
-
   };
 };
 

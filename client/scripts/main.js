@@ -20,7 +20,9 @@ var app;
      finalTranscript: '',
 
      doTamarJoke: false,
-     doM25Joke: true,
+     doM25Joke: false,
+     doEUJoke: false,
+     doFrontendLoveJoke: true,
      doneJoke: false
    };
 

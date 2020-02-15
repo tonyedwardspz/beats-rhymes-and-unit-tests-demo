@@ -21,6 +21,9 @@
     "linebreak": true,
     "info": true,
     "tamarJoke": true,
+    "euJoke": true,
+    "m25Joke": true,
+    "frontendDeveloperLoveJoke": true,
 
     "require": true,
     "module": true,
