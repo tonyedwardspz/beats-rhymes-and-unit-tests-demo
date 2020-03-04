@@ -60,3 +60,13 @@ let frontendDeveloperLoveJoke = (transcript) => {
     app.doneJoke = true;
   }
 };
+
+let bristechJoke = (transcript) => {
+  if (transcript.includes('comments') && !app.doneJoke) {
+    let msg = `Bris tech has the best meet up audience in the world.
+               They were really awesome.`;
+    let utter = new SpeechSynthesisUtterance(msg);
+    window.speechSynthesis.speak(utter);
+    app.doneJoke = true;
+  }
+};
