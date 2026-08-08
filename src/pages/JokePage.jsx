@@ -96,7 +96,9 @@ export default function JokePage() {
               onChange={(e) => setVoiceURI(e.target.value)}
               disabled={!voices.length}
             >
-              {!voices.length && <option value="">Loading voices…</option>}
+              {!voices.length && (
+                <option value="">No voices available</option>
+              )}
               {voices.map((voice) => (
                 <option key={voice.voiceURI} value={voice.voiceURI}>
                   {voice.name} ({voice.lang})
