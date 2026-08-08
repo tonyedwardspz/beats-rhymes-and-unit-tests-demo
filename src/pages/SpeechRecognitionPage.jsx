@@ -21,26 +21,33 @@ export default function SpeechRecognitionPage() {
   } = useSpeechRecognition({ language, finalRef });
 
   return (
-    <>
-      <PageTitle>Lyric Transcriber</PageTitle>
+    <div className="lyric-page">
+      <div className="lyric-page-top">
+        <PageTitle>Lyric Transcriber</PageTitle>
 
-      <InfoMessages infoKey={infoKey} />
+        <InfoMessages infoKey={infoKey} />
 
-      {supported && (
-        <MicButton src={micSrc} recognizing={recognizing} onToggle={toggle} />
-      )}
+        <div className="lyric-page-controls">
+          <LanguageSelect
+            value={language}
+            onChange={setLanguage}
+            disabled={recognizing}
+          />
+          {supported && (
+            <MicButton
+              src={micSrc}
+              recognizing={recognizing}
+              onToggle={toggle}
+            />
+          )}
+        </div>
+      </div>
 
       <Results
         ref={finalRef}
         finalTranscript={finalTranscript}
         interimTranscript={interimTranscript}
       />
-
-      <LanguageSelect
-        value={language}
-        onChange={setLanguage}
-        disabled={recognizing}
-      />
-    </>
+    </div>
   );
 }
