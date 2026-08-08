@@ -30,16 +30,33 @@ export default function PunchlinePage() {
 
   const {
     supported: captureSupported,
+    displaySupported,
+    micSupported,
     isCapturing,
+    captureSource,
     isRecording,
     recordings,
     error: captureError,
     startCapture,
+    startMicCapture,
     stopCapture,
     speakAndRecord,
     stopSpeech,
     discardRecording,
   } = useSpeechRecorder();
+
+  const captureStatus = (() => {
+    if (!isCapturing) {
+      return null;
+    }
+    if (isRecording) {
+      return 'Recording this utterance…';
+    }
+    if (captureSource === 'microphone') {
+      return 'Microphone ready — Speak to record (keep speakers unmuted).';
+    }
+    return 'Screen/system audio ready — Speak to record.';
+  })();
 
   useEffect(() => {
     if (!supported) {
@@ -178,8 +195,10 @@ export default function PunchlinePage() {
                 <div className="tts-capture-copy">
                   <span className="tts-label">Record speech</span>
                   <p className="tts-capture-hint">
-                    Share this tab and enable “Share tab audio”. Capture stays
-                    on so each Speak can be saved.
+                    Chrome voices usually use the OS speech engine, so a
+                    “Chrome tab” share records silence. Prefer{' '}
+                    <strong>Entire screen + system audio</strong>, or use the
+                    microphone while speakers play.
                   </p>
                 </div>
                 {isCapturing ? (
@@ -191,33 +210,42 @@ export default function PunchlinePage() {
                     Stop capture
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    className="tts-button tts-button-primary"
-                    onClick={startCapture}
-                    disabled={!captureSupported}
-                  >
-                    Enable tab capture
-                  </button>
+                  <div className="tts-capture-actions">
+                    <button
+                      type="button"
+                      className="tts-button tts-button-primary"
+                      onClick={startCapture}
+                      disabled={!displaySupported}
+                    >
+                      Share screen audio
+                    </button>
+                    <button
+                      type="button"
+                      className="tts-button"
+                      onClick={startMicCapture}
+                      disabled={!micSupported}
+                    >
+                      Use microphone
+                    </button>
+                  </div>
                 )}
               </div>
 
               {!captureSupported && (
                 <p className="tts-capture-status muted">
-                  Recording needs Chrome or Edge with tab audio capture.
+                  Recording needs Chrome or Edge with screen or microphone
+                  capture.
                 </p>
               )}
 
-              {isCapturing && (
+              {captureStatus && (
                 <p
                   className={`tts-capture-status tts-capture-active${
                     isRecording ? ' tts-capture-recording' : ''
                   }`}
                   role="status"
                 >
-                  {isRecording
-                    ? 'Recording this utterance…'
-                    : 'Capturing tab audio — Speak to record.'}
+                  {captureStatus}
                 </p>
               )}
 

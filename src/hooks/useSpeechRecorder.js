@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cancelSpeech, speakAsync } from '../lib/speechSynthesis.js';
 import {
+  SILENT_RECORDING_HINT,
+  isMicrophoneCaptureSupported,
   isTabAudioCaptureSupported,
   looksSilentRecording,
   startAudioRecording,
+  startMicrophoneCapture,
   startTabAudioCapture,
   stopMediaStream,
 } from '../lib/tabAudioCapture.js';
@@ -21,19 +24,26 @@ import {
 let recordingSeq = 0;
 
 /**
- * Retained tab-audio capture + speak-and-record for the Punchline page.
+ * Retained audio capture + speak-and-record for the Punchline page.
  */
 export function useSpeechRecorder() {
-  const supported = isTabAudioCaptureSupported();
+  const displaySupported = isTabAudioCaptureSupported();
+  const micSupported = isMicrophoneCaptureSupported();
+  const supported = displaySupported || micSupported;
 
   const [isCapturing, setIsCapturing] = useState(false);
+  const [captureSource, setCaptureSource] = useState(
+    /** @type {null | 'display' | 'microphone'} */ (null)
+  );
   const [isRecording, setIsRecording] = useState(false);
   const [recordings, setRecordings] = useState(/** @type {SpeechRecording[]} */ ([]));
   const [error, setError] = useState(/** @type {string | null} */ (null));
 
   const captureStreamRef = useRef(/** @type {MediaStream | null} */ (null));
   const audioStreamRef = useRef(/** @type {MediaStream | null} */ (null));
-  const activeRecordingRef = useRef(/** @type {ReturnType<typeof startAudioRecording> | null} */ (null));
+  const activeRecordingRef = useRef(
+    /** @type {ReturnType<typeof startAudioRecording> | null} */ (null)
+  );
   const speakGenerationRef = useRef(0);
   const recordingsRef = useRef(recordings);
   // When we stop tracks ourselves, ignore the resulting `ended` events.
@@ -50,6 +60,7 @@ export function useSpeechRecorder() {
     captureStreamRef.current = null;
     audioStreamRef.current = null;
     setIsCapturing(false);
+    setCaptureSource(null);
   }, []);
 
   const attachTrackEndedHandlers = useCallback(
@@ -59,7 +70,7 @@ export function useSpeechRecorder() {
           return;
         }
         setError(
-          'Tab audio capture was stopped. Enable capture again to keep recording.'
+          'Audio capture was stopped. Enable capture again to keep recording.'
         );
         if (activeRecordingRef.current) {
           activeRecordingRef.current.discard().catch(() => {});
@@ -86,31 +97,46 @@ export function useSpeechRecorder() {
     clearCaptureStreams();
   }, [clearCaptureStreams]);
 
-  const startCapture = useCallback(async () => {
-    setError(null);
+  const beginCapture = useCallback(
+    async (startFn) => {
+      setError(null);
 
-    if (!supported) {
+      // Replace any existing capture session.
+      stopCapture();
+
+      try {
+        const { captureStream, audioStream, source } = await startFn();
+        captureStreamRef.current = captureStream;
+        audioStreamRef.current = audioStream;
+        ignoreTrackEndedRef.current = false;
+        attachTrackEndedHandlers(audioStream);
+        setCaptureSource(source);
+        setIsCapturing(true);
+      } catch (err) {
+        clearCaptureStreams();
+        setError(err?.message || 'Could not start audio capture.');
+      }
+    },
+    [stopCapture, attachTrackEndedHandlers, clearCaptureStreams]
+  );
+
+  const startCapture = useCallback(async () => {
+    if (!displaySupported) {
       setError(
-        'Tab audio capture is not supported in this browser. Try Chrome or Edge.'
+        'Screen audio capture is not supported in this browser. Try Chrome or Edge, or use the microphone.'
       );
       return;
     }
+    await beginCapture(startTabAudioCapture);
+  }, [displaySupported, beginCapture]);
 
-    // Replace any existing capture session.
-    stopCapture();
-
-    try {
-      const { captureStream, audioStream } = await startTabAudioCapture();
-      captureStreamRef.current = captureStream;
-      audioStreamRef.current = audioStream;
-      ignoreTrackEndedRef.current = false;
-      attachTrackEndedHandlers(audioStream);
-      setIsCapturing(true);
-    } catch (err) {
-      clearCaptureStreams();
-      setError(err?.message || 'Could not start tab audio capture.');
+  const startMicCapture = useCallback(async () => {
+    if (!micSupported) {
+      setError('Microphone capture is not supported in this browser.');
+      return;
     }
-  }, [supported, stopCapture, attachTrackEndedHandlers, clearCaptureStreams]);
+    await beginCapture(startMicrophoneCapture);
+  }, [micSupported, beginCapture]);
 
   const discardRecording = useCallback((id) => {
     setRecordings((prev) => {
@@ -126,98 +152,105 @@ export function useSpeechRecorder() {
     setError(null);
   }, []);
 
-  const speakAndRecord = useCallback(
-    async (options) => {
-      setError(null);
+  const speakAndRecord = useCallback(async (options) => {
+    setError(null);
 
-      // Cancel any in-flight speak/record before starting a new one.
-      speakGenerationRef.current += 1;
-      const generation = speakGenerationRef.current;
+    // Cancel any in-flight speak/record before starting a new one.
+    speakGenerationRef.current += 1;
+    const generation = speakGenerationRef.current;
 
-      if (activeRecordingRef.current) {
-        await activeRecordingRef.current.discard().catch(() => {});
+    if (activeRecordingRef.current) {
+      await activeRecordingRef.current.discard().catch(() => {});
+      activeRecordingRef.current = null;
+      setIsRecording(false);
+    }
+
+    if (!options?.text) {
+      cancelSpeech();
+      return;
+    }
+
+    const audioStream = audioStreamRef.current;
+    const shouldRecord =
+      Boolean(audioStream) &&
+      audioStream.getAudioTracks().some((track) => track.readyState === 'live');
+
+    let session = null;
+    if (shouldRecord) {
+      try {
+        session = startAudioRecording(audioStream);
+        activeRecordingRef.current = session;
+        setIsRecording(true);
+      } catch (err) {
+        setError(err?.message || 'Could not start MediaRecorder.');
+      }
+    }
+
+    try {
+      await speakAsync(options);
+
+      if (generation !== speakGenerationRef.current) {
+        return;
+      }
+
+      if (session && activeRecordingRef.current === session) {
+        // Brief grace period: utterance `end` can fire slightly before audio stops.
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, 120);
+        });
+
+        if (generation !== speakGenerationRef.current) {
+          await session.discard().catch(() => {});
+          if (activeRecordingRef.current === session) {
+            activeRecordingRef.current = null;
+            setIsRecording(false);
+          }
+          return;
+        }
+
+        const result = await session.stop();
+        activeRecordingRef.current = null;
+        setIsRecording(false);
+
+        if (result.discarded) {
+          return;
+        }
+
+        if (await looksSilentRecording(result.blob)) {
+          setError(SILENT_RECORDING_HINT);
+          return;
+        }
+
+        const url = URL.createObjectURL(result.blob);
+        /** @type {SpeechRecording} */
+        const recording = {
+          id: `rec-${Date.now()}-${recordingSeq++}`,
+          blob: result.blob,
+          url,
+          mimeType: result.mimeType,
+          createdAt: Date.now(),
+        };
+        setRecordings((prev) => [recording, ...prev]);
+      }
+    } catch (err) {
+      if (session && activeRecordingRef.current === session) {
+        await session.discard().catch(() => {});
         activeRecordingRef.current = null;
         setIsRecording(false);
       }
 
-      if (!options?.text) {
-        cancelSpeech();
+      if (generation !== speakGenerationRef.current) {
         return;
       }
 
-      const audioStream = audioStreamRef.current;
-      const shouldRecord =
-        Boolean(audioStream) &&
-        audioStream.getAudioTracks().some((track) => track.readyState === 'live');
-
-      let session = null;
-      if (shouldRecord) {
-        try {
-          session = startAudioRecording(audioStream);
-          activeRecordingRef.current = session;
-          setIsRecording(true);
-        } catch (err) {
-          setError(err?.message || 'Could not start MediaRecorder.');
-        }
+      if (err?.name === 'SpeechCancelledError') {
+        // User hit Stop or started another utterance — no error banner.
+        return;
       }
 
-      try {
-        await speakAsync(options);
-
-        if (generation !== speakGenerationRef.current) {
-          return;
-        }
-
-        if (session && activeRecordingRef.current === session) {
-          const result = await session.stop();
-          activeRecordingRef.current = null;
-          setIsRecording(false);
-
-          if (result.discarded) {
-            return;
-          }
-
-          if (looksSilentRecording(result.blob)) {
-            setError(
-              'Recording is silent. Confirm you shared this tab with “Share tab audio” enabled. Some OS voices may not appear in tab audio — try a different Chrome voice.'
-            );
-            return;
-          }
-
-          const url = URL.createObjectURL(result.blob);
-          /** @type {SpeechRecording} */
-          const recording = {
-            id: `rec-${Date.now()}-${recordingSeq++}`,
-            blob: result.blob,
-            url,
-            mimeType: result.mimeType,
-            createdAt: Date.now(),
-          };
-          setRecordings((prev) => [recording, ...prev]);
-        }
-      } catch (err) {
-        if (session && activeRecordingRef.current === session) {
-          await session.discard().catch(() => {});
-          activeRecordingRef.current = null;
-          setIsRecording(false);
-        }
-
-        if (generation !== speakGenerationRef.current) {
-          return;
-        }
-
-        if (err?.name === 'SpeechCancelledError') {
-          // User hit Stop or started another utterance — no error banner.
-          return;
-        }
-
-        if (err?.name !== 'SpeechCancelledError') {
-          setError(err?.message || 'Speech failed.');
-        }
-      }
-    },
-    []
-  );
+      setError(err?.message || 'Speech failed.');
+    }
+  }, []);
 
   const stopSpeech = useCallback(() => {
     speakGenerationRef.current += 1;
@@ -252,11 +285,15 @@ export function useSpeechRecorder() {
 
   return {
     supported,
+    displaySupported,
+    micSupported,
     isCapturing,
+    captureSource,
     isRecording,
     recordings,
     error,
     startCapture,
+    startMicCapture,
     stopCapture,
     speakAndRecord,
     stopSpeech,
