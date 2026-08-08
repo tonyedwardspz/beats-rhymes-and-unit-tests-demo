@@ -4,7 +4,8 @@ const MIC_SETTINGS_LINK =
   '//support.google.com/chrome/bin/answer.py?hl=en&answer=1407892';
 
 const MESSAGES = {
-  [INFO.START]: <span>Click on the microphone icon and begin speaking.</span>,
+  // No idle instruction — the mic button is self-explanatory.
+  [INFO.START]: null,
   [INFO.SPEAK_NOW]: <span>Speak now.</span>,
   [INFO.NO_SPEECH]: (
     <span>
@@ -39,9 +40,8 @@ const MESSAGES = {
 
 export default function InfoMessages({ infoKey }) {
   const message = infoKey ? MESSAGES[infoKey] : null;
-  return (
-    <div id="info" style={{ visibility: message ? 'visible' : 'hidden' }}>
-      {message}
-    </div>
-  );
+  if (!message) {
+    return null;
+  }
+  return <div id="info">{message}</div>;
 }

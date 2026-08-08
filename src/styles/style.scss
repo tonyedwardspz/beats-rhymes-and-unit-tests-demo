@@ -115,8 +115,9 @@ $topbar-height: 56px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: 100%;
-  max-width: 200px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
   color: #000;
   font-family: 'Archivo Black', 'Arial Black', Impact, sans-serif;
   font-weight: 400;
@@ -144,7 +145,7 @@ $topbar-height: 56px;
 
 .brand-mark-line {
   display: block;
-  font-size: 28px;
+  font-size: 26px;
   white-space: nowrap;
 }
 
@@ -227,11 +228,49 @@ h1 {
   font-weight: 300;
 }
 
+// Page titles use the same red-bar sandwich as the brand mark.
+.page-title {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 16px;
+  padding: 0;
+  text-align: center;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 300;
+  line-height: 1.1;
+}
+
+.page-title-bar {
+  display: block;
+  height: 10px;
+  background-color: $brand-red;
+  flex-shrink: 0;
+
+  &:first-child {
+    margin-bottom: 8px;
+  }
+
+  &:last-child {
+    margin-top: 8px;
+  }
+}
+
+.page-title-text {
+  display: block;
+  padding: 0 4px;
+}
+
 #info {
   color: $muted;
   font-size: 20px;
   text-align: center;
-  min-height: 1.5em;
+
+  &:empty {
+    display: none;
+  }
 }
 
 #results {
@@ -273,7 +312,7 @@ h1 {
   font-size: 14px;
 }
 
-// Joke page — manual TTS studio controls.
+// Punchline page — manual TTS studio controls.
 .tts-form {
   display: flex;
   flex-direction: column;

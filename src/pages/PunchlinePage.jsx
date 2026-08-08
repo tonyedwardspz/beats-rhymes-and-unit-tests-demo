@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import PageTitle from '../components/PageTitle.jsx';
 import {
   cancelSpeech,
   getVoices,
@@ -9,7 +10,7 @@ import {
 
 const DEFAULT_TEXT = 'The current meetup is awesome.';
 
-export default function JokePage() {
+export default function PunchlinePage() {
   const supported = isSpeechSynthesisSupported();
   const [text, setText] = useState(DEFAULT_TEXT);
   const [voices, setVoices] = useState(() => getVoices());
@@ -60,7 +61,7 @@ export default function JokePage() {
 
   return (
     <>
-      <h1 className="center">Joke</h1>
+      <PageTitle>Punchline</PageTitle>
 
       {!supported && (
         <p className="center muted">

@@ -1,4 +1,4 @@
-// Helpers around the browser Web Speech Synthesis API for the Joke page TTS studio.
+// Helpers around the browser Web Speech Synthesis API for the Punchline page TTS studio.
 
 export const isSpeechSynthesisSupported = () =>
   typeof window !== 'undefined' && 'speechSynthesis' in window;
