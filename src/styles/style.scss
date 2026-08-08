@@ -73,6 +73,7 @@ $topbar-height: 56px;
   padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 // Dimming overlay shown behind the flyout menu.
