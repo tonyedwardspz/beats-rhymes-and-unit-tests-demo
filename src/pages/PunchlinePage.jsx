@@ -1,14 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import PageTitle from '../components/PageTitle.jsx';
+import { useSpeechRecorder } from '../hooks/useSpeechRecorder.js';
 import {
-  cancelSpeech,
   getVoices,
   isSpeechSynthesisSupported,
-  speak,
   subscribeVoices,
 } from '../lib/speechSynthesis.js';
 
 const DEFAULT_TEXT = 'The current meetup is awesome.';
+
+const extensionForMime = (mimeType) => {
+  if (mimeType?.includes('mp4')) {
+    return 'm4a';
+  }
+  if (mimeType?.includes('ogg')) {
+    return 'ogg';
+  }
+  return 'webm';
+};
 
 export default function PunchlinePage() {
   const supported = isSpeechSynthesisSupported();
@@ -18,6 +27,19 @@ export default function PunchlinePage() {
   const [rate, setRate] = useState(1);
   const [pitch, setPitch] = useState(1);
   const [volume, setVolume] = useState(1);
+
+  const {
+    supported: captureSupported,
+    isCapturing,
+    isRecording,
+    recordings,
+    error: captureError,
+    startCapture,
+    stopCapture,
+    speakAndRecord,
+    stopSpeech,
+    discardRecording,
+  } = useSpeechRecorder();
 
   useEffect(() => {
     if (!supported) {
@@ -46,7 +68,7 @@ export default function PunchlinePage() {
   );
 
   const handleSpeak = () => {
-    speak({
+    speakAndRecord({
       text: text.trim(),
       voice: selectedVoice,
       rate,
@@ -56,7 +78,7 @@ export default function PunchlinePage() {
   };
 
   const handleStop = () => {
-    cancelSpeech();
+    stopSpeech();
   };
 
   return (
@@ -71,98 +93,196 @@ export default function PunchlinePage() {
       )}
 
       {supported && (
-        <form
-          className="tts-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSpeak();
-          }}
-        >
-          <label className="tts-field">
-            <span className="tts-label">Text</span>
-            <textarea
-              className="tts-textarea"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={4}
-              aria-label="Text to speak"
-            />
-          </label>
+        <>
+          <form
+            className="tts-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSpeak();
+            }}
+          >
+            <label className="tts-field">
+              <span className="tts-label">Text</span>
+              <textarea
+                className="tts-textarea"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={4}
+                aria-label="Text to speak"
+              />
+            </label>
 
-          <label className="tts-field">
-            <span className="tts-label">Voice</span>
-            <select
-              className="tts-select"
-              value={voiceURI}
-              onChange={(e) => setVoiceURI(e.target.value)}
-              disabled={!voices.length}
-            >
-              {!voices.length && (
-                <option value="">No voices available</option>
+            <label className="tts-field">
+              <span className="tts-label">Voice</span>
+              <select
+                className="tts-select"
+                value={voiceURI}
+                onChange={(e) => setVoiceURI(e.target.value)}
+                disabled={!voices.length}
+              >
+                {!voices.length && (
+                  <option value="">No voices available</option>
+                )}
+                {voices.map((voice) => (
+                  <option key={voice.voiceURI} value={voice.voiceURI}>
+                    {voice.name} ({voice.lang})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="tts-field">
+              <span className="tts-label">
+                Speed <span className="tts-value">{rate.toFixed(1)}</span>
+              </span>
+              <input
+                type="range"
+                min="0.1"
+                max="2"
+                step="0.1"
+                value={rate}
+                onChange={(e) => setRate(Number(e.target.value))}
+              />
+            </label>
+
+            <label className="tts-field">
+              <span className="tts-label">
+                Pitch <span className="tts-value">{pitch.toFixed(1)}</span>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={pitch}
+                onChange={(e) => setPitch(Number(e.target.value))}
+              />
+            </label>
+
+            <label className="tts-field">
+              <span className="tts-label">
+                Volume <span className="tts-value">{volume.toFixed(1)}</span>
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={(e) => setVolume(Number(e.target.value))}
+              />
+            </label>
+
+            <div className="tts-capture">
+              <div className="tts-capture-row">
+                <div className="tts-capture-copy">
+                  <span className="tts-label">Record speech</span>
+                  <p className="tts-capture-hint">
+                    Share this tab and enable “Share tab audio”. Capture stays
+                    on so each Speak can be saved.
+                  </p>
+                </div>
+                {isCapturing ? (
+                  <button
+                    type="button"
+                    className="tts-button"
+                    onClick={stopCapture}
+                  >
+                    Stop capture
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="tts-button tts-button-primary"
+                    onClick={startCapture}
+                    disabled={!captureSupported}
+                  >
+                    Enable tab capture
+                  </button>
+                )}
+              </div>
+
+              {!captureSupported && (
+                <p className="tts-capture-status muted">
+                  Recording needs Chrome or Edge with tab audio capture.
+                </p>
               )}
-              {voices.map((voice) => (
-                <option key={voice.voiceURI} value={voice.voiceURI}>
-                  {voice.name} ({voice.lang})
-                </option>
-              ))}
-            </select>
-          </label>
 
-          <label className="tts-field">
-            <span className="tts-label">
-              Speed <span className="tts-value">{rate.toFixed(1)}</span>
-            </span>
-            <input
-              type="range"
-              min="0.1"
-              max="2"
-              step="0.1"
-              value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
-            />
-          </label>
+              {isCapturing && (
+                <p
+                  className={`tts-capture-status tts-capture-active${
+                    isRecording ? ' tts-capture-recording' : ''
+                  }`}
+                  role="status"
+                >
+                  {isRecording
+                    ? 'Recording this utterance…'
+                    : 'Capturing tab audio — Speak to record.'}
+                </p>
+              )}
 
-          <label className="tts-field">
-            <span className="tts-label">
-              Pitch <span className="tts-value">{pitch.toFixed(1)}</span>
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="2"
-              step="0.1"
-              value={pitch}
-              onChange={(e) => setPitch(Number(e.target.value))}
-            />
-          </label>
+              {captureError && (
+                <p className="tts-capture-error" role="alert">
+                  {captureError}
+                </p>
+              )}
+            </div>
 
-          <label className="tts-field">
-            <span className="tts-label">
-              Volume <span className="tts-value">{volume.toFixed(1)}</span>
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={volume}
-              onChange={(e) => setVolume(Number(e.target.value))}
-            />
-          </label>
+            <div className="tts-actions">
+              <button type="submit" className="tts-button tts-button-primary">
+                Speak
+              </button>
+              <button
+                type="button"
+                className="tts-button"
+                onClick={handleStop}
+              >
+                Stop
+              </button>
+            </div>
+          </form>
 
-          <div className="tts-actions">
-            <button type="submit" className="tts-button tts-button-primary">
-              Speak
-            </button>
-            <button
-              type="button"
-              className="tts-button"
-              onClick={handleStop}
-            >
-              Stop
-            </button>
-          </div>
-        </form>
+          {recordings.length > 0 && (
+            <section className="tts-recordings" aria-label="Recordings">
+              <h2 className="tts-recordings-title">Recordings</h2>
+              <ul className="tts-recordings-list">
+                {recordings.map((recording, index) => (
+                  <li key={recording.id} className="tts-recording-item">
+                    <div className="tts-recording-meta">
+                      <span className="tts-recording-label">
+                        Take {recordings.length - index}
+                      </span>
+                      <audio
+                        className="tts-recording-audio"
+                        controls
+                        src={recording.url}
+                        preload="metadata"
+                      />
+                    </div>
+                    <div className="tts-recording-actions">
+                      <a
+                        className="tts-button"
+                        href={recording.url}
+                        download={`punchline-${recording.id}.${extensionForMime(
+                          recording.mimeType
+                        )}`}
+                      >
+                        Download
+                      </a>
+                      <button
+                        type="button"
+                        className="tts-button"
+                        onClick={() => discardRecording(recording.id)}
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
     </>
   );

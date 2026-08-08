@@ -37,7 +37,7 @@ export const subscribeVoices = (onChange) => {
 };
 
 /**
- * Speak text with the given utterance options.
+ * Build a SpeechSynthesisUtterance from speak options.
  *
  * @param {Object} options
  * @param {string} options.text
@@ -45,14 +45,12 @@ export const subscribeVoices = (onChange) => {
  * @param {number} [options.rate=1]
  * @param {number} [options.pitch=1]
  * @param {number} [options.volume=1]
+ * @returns {SpeechSynthesisUtterance | null}
  */
-export const speak = ({ text, voice, rate = 1, pitch = 1, volume = 1 }) => {
+const createUtterance = ({ text, voice, rate = 1, pitch = 1, volume = 1 }) => {
   if (!isSpeechSynthesisSupported() || !text) {
-    return;
+    return null;
   }
-
-  // Cancel anything currently speaking so a new Speak click starts cleanly.
-  window.speechSynthesis.cancel();
 
   const utter = new SpeechSynthesisUtterance(text);
   if (voice) {
@@ -64,7 +62,78 @@ export const speak = ({ text, voice, rate = 1, pitch = 1, volume = 1 }) => {
   utter.rate = rate;
   utter.pitch = pitch;
   utter.volume = volume;
+  return utter;
+};
+
+/**
+ * Speak text with the given utterance options.
+ *
+ * @param {Object} options
+ * @param {string} options.text
+ * @param {SpeechSynthesisVoice} [options.voice]
+ * @param {number} [options.rate=1]
+ * @param {number} [options.pitch=1]
+ * @param {number} [options.volume=1]
+ */
+export const speak = (options) => {
+  const utter = createUtterance(options);
+  if (!utter) {
+    return;
+  }
+
+  // Cancel anything currently speaking so a new Speak click starts cleanly.
+  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utter);
+};
+
+/**
+ * Speak text and resolve when the utterance ends.
+ * Rejects if synthesis errors or is cancelled before a natural end.
+ *
+ * @param {Object} options
+ * @param {string} options.text
+ * @param {SpeechSynthesisVoice} [options.voice]
+ * @param {number} [options.rate=1]
+ * @param {number} [options.pitch=1]
+ * @param {number} [options.volume=1]
+ * @returns {Promise<void>}
+ */
+export const speakAsync = (options) => {
+  const utter = createUtterance(options);
+  if (!utter) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    utter.onend = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolve();
+    };
+
+    utter.onerror = (event) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      const reason = event?.error || 'synthesis-failed';
+      const error = new Error(`Speech synthesis failed: ${reason}`);
+      error.name =
+        reason === 'canceled' || reason === 'interrupted'
+          ? 'SpeechCancelledError'
+          : 'SpeechSynthesisError';
+      error.speechError = reason;
+      reject(error);
+    };
+
+    // Cancel anything currently speaking so a new Speak click starts cleanly.
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  });
 };
 
 /** Stop any in-progress speech. */
