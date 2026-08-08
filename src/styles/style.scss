@@ -457,12 +457,40 @@ h1 {
   font-size: 14px;
 }
 
-// Punchline page — manual TTS studio controls.
-.tts-form {
+// Punchline page — two-column TTS studio (speech | recording).
+// Wider content area only while this page is mounted; page scroll stays on .content.
+.content:has(.tts-page) {
+  max-width: 1100px;
+}
+
+.tts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tts-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px 36px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+@media (max-width: 800px) {
+  .tts-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+.tts-form,
+.tts-col-speech,
+.tts-col-record {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  margin-top: 8px;
+  min-width: 0;
 }
 
 .tts-field {
@@ -539,6 +567,115 @@ h1 {
   &:hover {
     background-color: var(--button-primary-hover);
   }
+}
+
+.tts-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tts-capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tts-capture-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.tts-capture-status {
+  margin: 0;
+  font-size: 13px;
+}
+
+.tts-capture-active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tts-capture-recording {
+  color: $brand-red;
+}
+
+.tts-capture-error {
+  margin: 0;
+  font-size: 13px;
+  color: $brand-red;
+  line-height: 1.4;
+}
+
+.tts-recordings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tts-recordings-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tts-recordings-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.tts-recordings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tts-recording-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.tts-recording-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tts-recording-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tts-recording-audio {
+  width: 100%;
+}
+
+.tts-recording-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+a.tts-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 // Settings page.

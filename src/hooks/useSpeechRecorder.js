@@ -1,0 +1,303 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { cancelSpeech, speakAsync } from '../lib/speechSynthesis.js';
+import {
+  SILENT_RECORDING_HINT,
+  isMicrophoneCaptureSupported,
+  isTabAudioCaptureSupported,
+  looksSilentRecording,
+  startAudioRecording,
+  startMicrophoneCapture,
+  startTabAudioCapture,
+  stopMediaStream,
+} from '../lib/tabAudioCapture.js';
+
+/**
+ * @typedef {Object} SpeechRecording
+ * @property {string} id
+ * @property {Blob} blob
+ * @property {string} url
+ * @property {string} mimeType
+ * @property {number} [duration]
+ * @property {number} createdAt
+ */
+
+let recordingSeq = 0;
+
+/**
+ * Retained audio capture + speak-and-record for the Punchline page.
+ */
+export function useSpeechRecorder() {
+  const displaySupported = isTabAudioCaptureSupported();
+  const micSupported = isMicrophoneCaptureSupported();
+  const supported = displaySupported || micSupported;
+
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [captureSource, setCaptureSource] = useState(
+    /** @type {null | 'display' | 'microphone'} */ (null)
+  );
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordings, setRecordings] = useState(/** @type {SpeechRecording[]} */ ([]));
+  const [error, setError] = useState(/** @type {string | null} */ (null));
+
+  const captureStreamRef = useRef(/** @type {MediaStream | null} */ (null));
+  const audioStreamRef = useRef(/** @type {MediaStream | null} */ (null));
+  const activeRecordingRef = useRef(
+    /** @type {ReturnType<typeof startAudioRecording> | null} */ (null)
+  );
+  const speakGenerationRef = useRef(0);
+  const recordingsRef = useRef(recordings);
+  // When we stop tracks ourselves, ignore the resulting `ended` events.
+  const ignoreTrackEndedRef = useRef(false);
+
+  useEffect(() => {
+    recordingsRef.current = recordings;
+  }, [recordings]);
+
+  const clearCaptureStreams = useCallback(() => {
+    ignoreTrackEndedRef.current = true;
+    stopMediaStream(captureStreamRef.current);
+    stopMediaStream(audioStreamRef.current);
+    captureStreamRef.current = null;
+    audioStreamRef.current = null;
+    setIsCapturing(false);
+    setCaptureSource(null);
+  }, []);
+
+  const attachTrackEndedHandlers = useCallback(
+    (audioStream) => {
+      const onEnded = () => {
+        if (ignoreTrackEndedRef.current) {
+          return;
+        }
+        setError(
+          'Audio capture was stopped. Enable capture again to keep recording.'
+        );
+        if (activeRecordingRef.current) {
+          activeRecordingRef.current.discard().catch(() => {});
+          activeRecordingRef.current = null;
+          setIsRecording(false);
+        }
+        clearCaptureStreams();
+      };
+
+      for (const track of audioStream.getAudioTracks()) {
+        track.addEventListener('ended', onEnded);
+      }
+    },
+    [clearCaptureStreams]
+  );
+
+  const stopCapture = useCallback(() => {
+    setError(null);
+    if (activeRecordingRef.current) {
+      activeRecordingRef.current.discard().catch(() => {});
+      activeRecordingRef.current = null;
+      setIsRecording(false);
+    }
+    clearCaptureStreams();
+  }, [clearCaptureStreams]);
+
+  const beginCapture = useCallback(
+    async (startFn) => {
+      setError(null);
+
+      // Replace any existing capture session.
+      stopCapture();
+
+      try {
+        const { captureStream, audioStream, source } = await startFn();
+        captureStreamRef.current = captureStream;
+        audioStreamRef.current = audioStream;
+        ignoreTrackEndedRef.current = false;
+        attachTrackEndedHandlers(audioStream);
+        setCaptureSource(source);
+        setIsCapturing(true);
+      } catch (err) {
+        clearCaptureStreams();
+        setError(err?.message || 'Could not start audio capture.');
+      }
+    },
+    [stopCapture, attachTrackEndedHandlers, clearCaptureStreams]
+  );
+
+  const startCapture = useCallback(async () => {
+    if (!displaySupported) {
+      setError(
+        'Screen audio capture is not supported in this browser. Try Chrome or Edge, or use the microphone.'
+      );
+      return;
+    }
+    await beginCapture(startTabAudioCapture);
+  }, [displaySupported, beginCapture]);
+
+  const startMicCapture = useCallback(async () => {
+    if (!micSupported) {
+      setError('Microphone capture is not supported in this browser.');
+      return;
+    }
+    await beginCapture(startMicrophoneCapture);
+  }, [micSupported, beginCapture]);
+
+  const discardRecording = useCallback((id) => {
+    setRecordings((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (target?.url) {
+        URL.revokeObjectURL(target.url);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+  }, []);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const speakAndRecord = useCallback(async (options) => {
+    setError(null);
+
+    // Cancel any in-flight speak/record before starting a new one.
+    speakGenerationRef.current += 1;
+    const generation = speakGenerationRef.current;
+
+    if (activeRecordingRef.current) {
+      await activeRecordingRef.current.discard().catch(() => {});
+      activeRecordingRef.current = null;
+      setIsRecording(false);
+    }
+
+    if (!options?.text) {
+      cancelSpeech();
+      return;
+    }
+
+    const audioStream = audioStreamRef.current;
+    const shouldRecord =
+      Boolean(audioStream) &&
+      audioStream.getAudioTracks().some((track) => track.readyState === 'live');
+
+    let session = null;
+    if (shouldRecord) {
+      try {
+        session = startAudioRecording(audioStream);
+        activeRecordingRef.current = session;
+        setIsRecording(true);
+      } catch (err) {
+        setError(err?.message || 'Could not start MediaRecorder.');
+      }
+    }
+
+    try {
+      await speakAsync(options);
+
+      if (generation !== speakGenerationRef.current) {
+        return;
+      }
+
+      if (session && activeRecordingRef.current === session) {
+        // Brief grace period: utterance `end` can fire slightly before audio stops.
+        await new Promise((resolve) => {
+          window.setTimeout(resolve, 120);
+        });
+
+        if (generation !== speakGenerationRef.current) {
+          await session.discard().catch(() => {});
+          if (activeRecordingRef.current === session) {
+            activeRecordingRef.current = null;
+            setIsRecording(false);
+          }
+          return;
+        }
+
+        const result = await session.stop();
+        activeRecordingRef.current = null;
+        setIsRecording(false);
+
+        if (result.discarded) {
+          return;
+        }
+
+        if (await looksSilentRecording(result.blob)) {
+          setError(SILENT_RECORDING_HINT);
+          return;
+        }
+
+        const url = URL.createObjectURL(result.blob);
+        /** @type {SpeechRecording} */
+        const recording = {
+          id: `rec-${Date.now()}-${recordingSeq++}`,
+          blob: result.blob,
+          url,
+          mimeType: result.mimeType,
+          createdAt: Date.now(),
+        };
+        setRecordings((prev) => [recording, ...prev]);
+      }
+    } catch (err) {
+      if (session && activeRecordingRef.current === session) {
+        await session.discard().catch(() => {});
+        activeRecordingRef.current = null;
+        setIsRecording(false);
+      }
+
+      if (generation !== speakGenerationRef.current) {
+        return;
+      }
+
+      if (err?.name === 'SpeechCancelledError') {
+        // User hit Stop or started another utterance — no error banner.
+        return;
+      }
+
+      setError(err?.message || 'Speech failed.');
+    }
+  }, []);
+
+  const stopSpeech = useCallback(() => {
+    speakGenerationRef.current += 1;
+    if (activeRecordingRef.current) {
+      activeRecordingRef.current.discard().catch(() => {});
+      activeRecordingRef.current = null;
+      setIsRecording(false);
+    }
+    cancelSpeech();
+  }, []);
+
+  // Cleanup on unmount: stop capture, abort recorder, revoke object URLs.
+  useEffect(() => {
+    return () => {
+      speakGenerationRef.current += 1;
+      if (activeRecordingRef.current) {
+        activeRecordingRef.current.discard().catch(() => {});
+        activeRecordingRef.current = null;
+      }
+      cancelSpeech();
+      stopMediaStream(captureStreamRef.current);
+      stopMediaStream(audioStreamRef.current);
+      captureStreamRef.current = null;
+      audioStreamRef.current = null;
+      for (const item of recordingsRef.current) {
+        if (item.url) {
+          URL.revokeObjectURL(item.url);
+        }
+      }
+    };
+  }, []);
+
+  return {
+    supported,
+    displaySupported,
+    micSupported,
+    isCapturing,
+    captureSource,
+    isRecording,
+    recordings,
+    error,
+    startCapture,
+    startMicCapture,
+    stopCapture,
+    speakAndRecord,
+    stopSpeech,
+    discardRecording,
+    clearError,
+  };
+}
