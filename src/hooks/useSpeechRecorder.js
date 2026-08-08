@@ -36,12 +36,15 @@ export function useSpeechRecorder() {
   const activeRecordingRef = useRef(/** @type {ReturnType<typeof startAudioRecording> | null} */ (null));
   const speakGenerationRef = useRef(0);
   const recordingsRef = useRef(recordings);
+  // When we stop tracks ourselves, ignore the resulting `ended` events.
+  const ignoreTrackEndedRef = useRef(false);
 
   useEffect(() => {
     recordingsRef.current = recordings;
   }, [recordings]);
 
   const clearCaptureStreams = useCallback(() => {
+    ignoreTrackEndedRef.current = true;
     stopMediaStream(captureStreamRef.current);
     stopMediaStream(audioStreamRef.current);
     captureStreamRef.current = null;
@@ -52,6 +55,9 @@ export function useSpeechRecorder() {
   const attachTrackEndedHandlers = useCallback(
     (audioStream) => {
       const onEnded = () => {
+        if (ignoreTrackEndedRef.current) {
+          return;
+        }
         setError(
           'Tab audio capture was stopped. Enable capture again to keep recording.'
         );
@@ -71,6 +77,7 @@ export function useSpeechRecorder() {
   );
 
   const stopCapture = useCallback(() => {
+    setError(null);
     if (activeRecordingRef.current) {
       activeRecordingRef.current.discard().catch(() => {});
       activeRecordingRef.current = null;
@@ -96,6 +103,7 @@ export function useSpeechRecorder() {
       const { captureStream, audioStream } = await startTabAudioCapture();
       captureStreamRef.current = captureStream;
       audioStreamRef.current = audioStream;
+      ignoreTrackEndedRef.current = false;
       attachTrackEndedHandlers(audioStream);
       setIsCapturing(true);
     } catch (err) {
