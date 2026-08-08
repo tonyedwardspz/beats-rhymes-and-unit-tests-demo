@@ -99,7 +99,7 @@ export default function PunchlinePage() {
   };
 
   return (
-    <>
+    <div className="tts-page">
       <PageTitle>Punchline</PageTitle>
 
       {!supported && (
@@ -110,9 +110,9 @@ export default function PunchlinePage() {
       )}
 
       {supported && (
-        <>
+        <div className="tts-layout">
           <form
-            className="tts-form"
+            className="tts-form tts-col-speech"
             onSubmit={(e) => {
               e.preventDefault();
               handleSpeak();
@@ -190,18 +190,32 @@ export default function PunchlinePage() {
               />
             </label>
 
+            <div className="tts-actions">
+              <button type="submit" className="tts-button tts-button-primary">
+                Speak
+              </button>
+              <button
+                type="button"
+                className="tts-button"
+                onClick={handleStop}
+              >
+                Stop
+              </button>
+            </div>
+          </form>
+
+          <aside className="tts-col-record" aria-label="Recording">
             <div className="tts-capture">
-              <div className="tts-capture-row">
-                <div className="tts-capture-copy">
-                  <span className="tts-label">Record speech</span>
-                  <p className="tts-capture-hint">
-                    Chrome voices usually use the OS speech engine, so a
-                    “Chrome tab” share records silence. Prefer{' '}
-                    <strong>Entire screen + system audio</strong>, or use the
-                    microphone while speakers play.
-                  </p>
-                </div>
-                {isCapturing ? (
+              <span className="tts-label">Record speech</span>
+              <p className="tts-capture-hint">
+                Chrome voices usually use the OS speech engine, so a “Chrome
+                tab” share records silence. Prefer{' '}
+                <strong>Entire screen + system audio</strong>, or use the
+                microphone while speakers play.
+              </p>
+
+              {isCapturing ? (
+                <div className="tts-capture-actions">
                   <button
                     type="button"
                     className="tts-button"
@@ -209,27 +223,27 @@ export default function PunchlinePage() {
                   >
                     Stop capture
                   </button>
-                ) : (
-                  <div className="tts-capture-actions">
-                    <button
-                      type="button"
-                      className="tts-button tts-button-primary"
-                      onClick={startCapture}
-                      disabled={!displaySupported}
-                    >
-                      Share screen audio
-                    </button>
-                    <button
-                      type="button"
-                      className="tts-button"
-                      onClick={startMicCapture}
-                      disabled={!micSupported}
-                    >
-                      Use microphone
-                    </button>
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="tts-capture-actions">
+                  <button
+                    type="button"
+                    className="tts-button tts-button-primary"
+                    onClick={startCapture}
+                    disabled={!displaySupported}
+                  >
+                    Share screen audio
+                  </button>
+                  <button
+                    type="button"
+                    className="tts-button"
+                    onClick={startMicCapture}
+                    disabled={!micSupported}
+                  >
+                    Use microphone
+                  </button>
+                </div>
+              )}
 
               {!captureSupported && (
                 <p className="tts-capture-status muted">
@@ -256,62 +270,53 @@ export default function PunchlinePage() {
               )}
             </div>
 
-            <div className="tts-actions">
-              <button type="submit" className="tts-button tts-button-primary">
-                Speak
-              </button>
-              <button
-                type="button"
-                className="tts-button"
-                onClick={handleStop}
-              >
-                Stop
-              </button>
-            </div>
-          </form>
-
-          {recordings.length > 0 && (
             <section className="tts-recordings" aria-label="Recordings">
               <h2 className="tts-recordings-title">Recordings</h2>
-              <ul className="tts-recordings-list">
-                {recordings.map((recording, index) => (
-                  <li key={recording.id} className="tts-recording-item">
-                    <div className="tts-recording-meta">
-                      <span className="tts-recording-label">
-                        Take {recordings.length - index}
-                      </span>
-                      <audio
-                        className="tts-recording-audio"
-                        controls
-                        src={recording.url}
-                        preload="metadata"
-                      />
-                    </div>
-                    <div className="tts-recording-actions">
-                      <a
-                        className="tts-button"
-                        href={recording.url}
-                        download={`punchline-${recording.id}.${extensionForMime(
-                          recording.mimeType
-                        )}`}
-                      >
-                        Download
-                      </a>
-                      <button
-                        type="button"
-                        className="tts-button"
-                        onClick={() => discardRecording(recording.id)}
-                      >
-                        Discard
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {recordings.length === 0 ? (
+                <p className="tts-recordings-empty muted">
+                  No recordings yet. Enable capture, then Speak.
+                </p>
+              ) : (
+                <ul className="tts-recordings-list">
+                  {recordings.map((recording, index) => (
+                    <li key={recording.id} className="tts-recording-item">
+                      <div className="tts-recording-meta">
+                        <span className="tts-recording-label">
+                          Take {recordings.length - index}
+                        </span>
+                        <audio
+                          className="tts-recording-audio"
+                          controls
+                          src={recording.url}
+                          preload="metadata"
+                        />
+                      </div>
+                      <div className="tts-recording-actions">
+                        <a
+                          className="tts-button"
+                          href={recording.url}
+                          download={`punchline-${recording.id}.${extensionForMime(
+                            recording.mimeType
+                          )}`}
+                        >
+                          Download
+                        </a>
+                        <button
+                          type="button"
+                          className="tts-button"
+                          onClick={() => discardRecording(recording.id)}
+                        >
+                          Discard
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
-          )}
-        </>
+          </aside>
+        </div>
       )}
-    </>
+    </div>
   );
 }

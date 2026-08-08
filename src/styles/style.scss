@@ -457,12 +457,40 @@ h1 {
   font-size: 14px;
 }
 
-// Punchline page — manual TTS studio controls.
-.tts-form {
+// Punchline page — two-column TTS studio (speech | recording).
+// Wider content area only while this page is mounted; page scroll stays on .content.
+.content:has(.tts-page) {
+  max-width: 1100px;
+}
+
+.tts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tts-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px 36px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+@media (max-width: 800px) {
+  .tts-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+.tts-form,
+.tts-col-speech,
+.tts-col-record {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  margin-top: 8px;
+  min-width: 0;
 }
 
 .tts-field {
@@ -545,28 +573,12 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 4px;
-}
-
-.tts-capture-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 .tts-capture-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.tts-capture-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
 }
 
 .tts-capture-hint {
@@ -598,14 +610,22 @@ h1 {
 }
 
 .tts-recordings {
-  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .tts-recordings-title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
+}
+
+.tts-recordings-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .tts-recordings-list {
@@ -644,7 +664,6 @@ h1 {
 
 .tts-recording-audio {
   width: 100%;
-  max-width: 420px;
 }
 
 .tts-recording-actions {
