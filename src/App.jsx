@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import PunchlinePage from './pages/PunchlinePage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 import SpeechRecognitionPage from './pages/SpeechRecognitionPage.jsx';
 
 export default function App() {
@@ -22,29 +24,32 @@ export default function App() {
   }, [menuOpen]);
 
   return (
-    <div className="layout">
-      <header className="topbar">
-        <button
-          type="button"
-          className="hamburger"
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
-          aria-expanded={menuOpen}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </header>
+    <ThemeProvider>
+      <div className="layout">
+        <header className="topbar">
+          <button
+            type="button"
+            className="hamburger"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </header>
 
-      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+        <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      <main className="content">
-        <Routes>
-          <Route path="/" element={<SpeechRecognitionPage />} />
-          <Route path="/punchline" element={<PunchlinePage />} />
-        </Routes>
-      </main>
-    </div>
+        <main className="content">
+          <Routes>
+            <Route path="/" element={<SpeechRecognitionPage />} />
+            <Route path="/punchline" element={<PunchlinePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }

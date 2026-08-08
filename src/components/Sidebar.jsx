@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
-// Add future pages here and they'll automatically appear in the flyout menu.
+// Primary pages appear in the main nav; Settings lives in the footer.
 const NAV_ITEMS = [
   { to: '/', label: 'Lyric Transcriber', end: true },
   { to: '/punchline', label: 'Punchline' },
@@ -36,7 +36,7 @@ export default function Sidebar({ open, onClose }) {
             &times;
           </button>
         </div>
-        <nav>
+        <nav className="sidebar-body">
           <ul className="sidebar-nav">
             {NAV_ITEMS.map((item) => (
               <li key={item.to}>
@@ -52,6 +52,15 @@ export default function Sidebar({ open, onClose }) {
             ))}
           </ul>
         </nav>
+        <div className="sidebar-footer">
+          <NavLink
+            to="/settings"
+            onClick={onClose}
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+          >
+            Settings
+          </NavLink>
+        </div>
       </aside>
     </>
   );
