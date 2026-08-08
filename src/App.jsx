@@ -1,47 +1,48 @@
-import { useRef, useState } from 'react';
-import InfoMessages from './components/InfoMessages.jsx';
-import LanguageSelect from './components/LanguageSelect.jsx';
-import MicButton from './components/MicButton.jsx';
-import Results from './components/Results.jsx';
-import { useSpeechRecognition } from './hooks/useSpeechRecognition.js';
-import { DEFAULT_JOKE } from './lib/jokes.js';
+import { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Sidebar from './components/Sidebar.jsx';
+import SpeechRecognitionPage from './pages/SpeechRecognitionPage.jsx';
 
 export default function App() {
-  const [language, setLanguage] = useState('en-GB');
-  const [joke] = useState(DEFAULT_JOKE);
-  const finalRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const {
-    supported,
-    recognizing,
-    finalTranscript,
-    interimTranscript,
-    infoKey,
-    micSrc,
-    toggle,
-  } = useSpeechRecognition({ language, joke, finalRef });
+  // Close the flyout menu when the Escape key is pressed.
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen]);
 
   return (
-    <main className="app">
-      <h1 className="center">Beats, Rhymes &amp; Unit Tests</h1>
+    <div className="layout">
+      <header className="topbar">
+        <button
+          type="button"
+          className="hamburger"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </header>
 
-      <InfoMessages infoKey={infoKey} />
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      {supported && (
-        <MicButton src={micSrc} recognizing={recognizing} onToggle={toggle} />
-      )}
-
-      <Results
-        ref={finalRef}
-        finalTranscript={finalTranscript}
-        interimTranscript={interimTranscript}
-      />
-
-      <LanguageSelect
-        value={language}
-        onChange={setLanguage}
-        disabled={recognizing}
-      />
-    </main>
+      <main className="content">
+        <Routes>
+          <Route path="/" element={<SpeechRecognitionPage />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
