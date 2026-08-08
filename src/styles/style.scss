@@ -1,0 +1,230 @@
+$text: #1a1a1a;
+$muted: #808080;
+$blue: #33f;
+$border: #ddd;
+$bg: #fafafa;
+
+* {
+  box-sizing: border-box;
+  font-family: Verdana, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: $bg;
+  color: $text;
+}
+
+$sidebar-width: 260px;
+$topbar-height: 56px;
+
+.layout {
+  min-height: 100vh;
+}
+
+.topbar {
+  height: $topbar-height;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+// Hamburger button that opens the flyout menu.
+.hamburger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background-color: $text;
+    border-radius: 2px;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px 48px;
+}
+
+// Dimming overlay shown behind the flyout menu.
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 20;
+
+  &.open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Left flyout menu.
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: $sidebar-width;
+  max-width: 80vw;
+  background-color: #fff;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 30;
+
+  &.open {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $topbar-height;
+  padding: 0 12px 0 20px;
+  border-bottom: 1px solid $border;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sidebar-close {
+  border: 0;
+  background-color: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: $muted;
+  padding: 4px 8px;
+
+  &:hover {
+    color: $text;
+  }
+}
+
+.sidebar-nav {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+
+  a {
+    display: block;
+    padding: 12px 20px;
+    color: $text;
+    font-size: 15px;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &.active {
+      color: $blue;
+      font-weight: 600;
+      border-left: 3px solid $blue;
+      padding-left: 17px;
+    }
+  }
+}
+
+a:link,
+a:visited {
+  color: $text;
+  text-decoration: none;
+}
+
+a:hover {
+  color: $blue;
+}
+
+.center {
+  padding: 10px;
+  text-align: center;
+}
+
+.final {
+  color: $text;
+  padding-right: 3px;
+}
+
+.interim {
+  color: $muted;
+}
+
+.right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+h1 {
+  font-size: 40px;
+  font-weight: 300;
+}
+
+#info {
+  color: $muted;
+  font-size: 20px;
+  text-align: center;
+  min-height: 1.5em;
+}
+
+#results {
+  border: 1px solid $border;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  min-height: 150px;
+  padding: 15px;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#start_button {
+  background-color: transparent;
+  border: 0;
+  display: inline-block;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+#select_language {
+  padding: 6px 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+}
