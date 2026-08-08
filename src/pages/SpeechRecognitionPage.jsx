@@ -2,13 +2,12 @@ import { useRef, useState } from 'react';
 import InfoMessages from '../components/InfoMessages.jsx';
 import LanguageSelect from '../components/LanguageSelect.jsx';
 import MicButton from '../components/MicButton.jsx';
+import PageTitle from '../components/PageTitle.jsx';
 import Results from '../components/Results.jsx';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition.js';
-import { DEFAULT_JOKE } from '../lib/jokes.js';
 
 export default function SpeechRecognitionPage() {
   const [language, setLanguage] = useState('en-GB');
-  const [joke] = useState(DEFAULT_JOKE);
   const finalRef = useRef(null);
 
   const {
@@ -19,29 +18,36 @@ export default function SpeechRecognitionPage() {
     infoKey,
     micSrc,
     toggle,
-  } = useSpeechRecognition({ language, joke, finalRef });
+  } = useSpeechRecognition({ language, finalRef });
 
   return (
-    <>
-      <h1 className="center">Beats, Rhymes &amp; Unit Tests</h1>
+    <div className="lyric-page">
+      <div className="lyric-page-top">
+        <PageTitle>Lyric Transcriber</PageTitle>
 
-      <InfoMessages infoKey={infoKey} />
+        <InfoMessages infoKey={infoKey} />
 
-      {supported && (
-        <MicButton src={micSrc} recognizing={recognizing} onToggle={toggle} />
-      )}
+        <div className="lyric-page-controls">
+          <LanguageSelect
+            value={language}
+            onChange={setLanguage}
+            disabled={recognizing}
+          />
+          {supported && (
+            <MicButton
+              src={micSrc}
+              recognizing={recognizing}
+              onToggle={toggle}
+            />
+          )}
+        </div>
+      </div>
 
       <Results
         ref={finalRef}
         finalTranscript={finalTranscript}
         interimTranscript={interimTranscript}
       />
-
-      <LanguageSelect
-        value={language}
-        onChange={setLanguage}
-        disabled={recognizing}
-      />
-    </>
+    </div>
   );
 }

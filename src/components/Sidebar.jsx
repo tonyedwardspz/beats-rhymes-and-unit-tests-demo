@@ -1,7 +1,10 @@
 import { NavLink } from 'react-router-dom';
 
-// Add future pages here and they'll automatically appear in the flyout menu.
-const NAV_ITEMS = [{ to: '/', label: 'Speech to Text', end: true }];
+// Primary pages appear in the main nav; Settings lives in the footer.
+const NAV_ITEMS = [
+  { to: '/', label: 'Lyric Transcriber', end: true },
+  { to: '/punchline', label: 'Punchline' },
+];
 
 export default function Sidebar({ open, onClose }) {
   return (
@@ -17,7 +20,13 @@ export default function Sidebar({ open, onClose }) {
         aria-label="Main menu"
       >
         <div className="sidebar-header">
-          <span className="sidebar-title">Menu</span>
+          <div className="brand-mark" aria-label="Beats, Rhymes & Unit Tests">
+            <span className="brand-mark-bar" aria-hidden="true" />
+            <span className="brand-mark-line">BEATS</span>
+            <span className="brand-mark-line">RHYMES</span>
+            <span className="brand-mark-line">&amp; UNIT TESTS</span>
+            <span className="brand-mark-bar" aria-hidden="true" />
+          </div>
           <button
             type="button"
             className="sidebar-close"
@@ -27,7 +36,7 @@ export default function Sidebar({ open, onClose }) {
             &times;
           </button>
         </div>
-        <nav>
+        <nav className="sidebar-body">
           <ul className="sidebar-nav">
             {NAV_ITEMS.map((item) => (
               <li key={item.to}>
@@ -43,6 +52,15 @@ export default function Sidebar({ open, onClose }) {
             ))}
           </ul>
         </nav>
+        <div className="sidebar-footer">
+          <NavLink
+            to="/settings"
+            onClick={onClose}
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+          >
+            Settings
+          </NavLink>
+        </div>
       </aside>
     </>
   );

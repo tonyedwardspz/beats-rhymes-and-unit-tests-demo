@@ -1,28 +1,71 @@
-$text: #1a1a1a;
-$muted: #808080;
-$blue: #33f;
-$border: #ddd;
-$bg: #fafafa;
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+
+$brand-red: #e10600;
+$sidebar-width: 280px;
+$topbar-height: 56px;
+
+:root,
+[data-theme='light'] {
+  --text: #1a1a1a;
+  --muted: #808080;
+  --accent: #33f;
+  --border: #ddd;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --hover: rgba(0, 0, 0, 0.06);
+  --nav-hover: rgba(0, 0, 0, 0.05);
+  --shadow: rgba(0, 0, 0, 0.15);
+  --brand-text: #000000;
+  --button-primary-bg: #000000;
+  --button-primary-text: #ffffff;
+  --button-primary-hover: #222222;
+  --overlay: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] {
+  --text: #f2f2f2;
+  --muted: #9a9a9a;
+  --accent: #6b8cff;
+  --border: #3a3a3a;
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --hover: rgba(255, 255, 255, 0.08);
+  --nav-hover: rgba(255, 255, 255, 0.06);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --brand-text: #ffffff;
+  --button-primary-bg: #f2f2f2;
+  --button-primary-text: #121212;
+  --button-primary-hover: #dddddd;
+  --overlay: rgba(0, 0, 0, 0.55);
+}
 
 * {
   box-sizing: border-box;
   font-family: Verdana, Arial, sans-serif;
 }
 
+html,
 body {
   margin: 0;
-  background-color: $bg;
-  color: $text;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
-$sidebar-width: 260px;
-$topbar-height: 56px;
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
 
 .layout {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .topbar {
+  flex: 0 0 $topbar-height;
   height: $topbar-height;
   display: flex;
   align-items: center;
@@ -48,26 +91,32 @@ $topbar-height: 56px;
     display: block;
     height: 2px;
     width: 100%;
-    background-color: $text;
+    background-color: var(--text);
     border-radius: 2px;
   }
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: var(--hover);
   }
 }
 
 .content {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  padding: 8px 16px 48px;
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 // Dimming overlay shown behind the flyout menu.
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: var(--overlay);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -87,10 +136,13 @@ $topbar-height: 56px;
   height: 100vh;
   width: $sidebar-width;
   max-width: 80vw;
-  background-color: #fff;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  color: var(--text);
+  box-shadow: 2px 0 12px var(--shadow);
   transform: translateX(-100%);
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, background-color 0.2s ease;
   z-index: 30;
 
   &.open {
@@ -99,30 +151,99 @@ $topbar-height: 56px;
 }
 
 .sidebar-header {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: $topbar-height;
-  padding: 0 12px 0 20px;
-  border-bottom: 1px solid $border;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 20px 40px 16px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.sidebar-title {
-  font-size: 18px;
-  font-weight: 600;
+.sidebar-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+
+  a {
+    display: block;
+    padding: 12px 20px;
+    color: var(--text);
+    font-size: 15px;
+
+    &:hover {
+      background-color: var(--nav-hover);
+    }
+
+    &.active {
+      color: var(--accent);
+      font-weight: 600;
+      border-left: 3px solid var(--accent);
+      padding-left: 17px;
+    }
+  }
+}
+
+// Run-DMC–inspired stacked brand mark for the talk title.
+.brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  color: var(--brand-text);
+  font-family: 'Archivo Black', 'Arial Black', Impact, sans-serif;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.brand-mark-bar {
+  display: block;
+  height: 10px;
+  background-color: $brand-red;
+  flex-shrink: 0;
+
+  &:first-child {
+    margin-bottom: 6px;
+  }
+
+  &:last-child {
+    margin-top: 6px;
+  }
+}
+
+.brand-mark-line {
+  display: block;
+  font-size: 26px;
+  white-space: nowrap;
 }
 
 .sidebar-close {
+  position: absolute;
+  top: 8px;
+  right: 4px;
   border: 0;
   background-color: transparent;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
-  color: $muted;
+  color: var(--muted);
   padding: 4px 8px;
 
   &:hover {
-    color: $text;
+    color: var(--text);
   }
 }
 
@@ -134,17 +255,17 @@ $topbar-height: 56px;
   a {
     display: block;
     padding: 12px 20px;
-    color: $text;
+    color: var(--text);
     font-size: 15px;
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.05);
+      background-color: var(--nav-hover);
     }
 
     &.active {
-      color: $blue;
+      color: var(--accent);
       font-weight: 600;
-      border-left: 3px solid $blue;
+      border-left: 3px solid var(--accent);
       padding-left: 17px;
     }
   }
@@ -152,12 +273,12 @@ $topbar-height: 56px;
 
 a:link,
 a:visited {
-  color: $text;
+  color: var(--text);
   text-decoration: none;
 }
 
 a:hover {
-  color: $blue;
+  color: var(--accent);
 }
 
 .center {
@@ -165,13 +286,17 @@ a:hover {
   text-align: center;
 }
 
+.muted {
+  color: var(--muted);
+}
+
 .final {
-  color: $text;
+  color: var(--text);
   padding-right: 3px;
 }
 
 .interim {
-  color: $muted;
+  color: var(--muted);
 }
 
 .right {
@@ -184,20 +309,122 @@ h1 {
   font-weight: 300;
 }
 
+// Page titles use the same red-bar sandwich as the brand mark.
+.page-title {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 16px;
+  padding: 0;
+  text-align: center;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.page-title-bar {
+  display: block;
+  height: 10px;
+  background-color: $brand-red;
+  flex-shrink: 0;
+
+  &:first-child {
+    margin-bottom: 8px;
+  }
+
+  &:last-child {
+    margin-top: 8px;
+  }
+}
+
+.page-title-text {
+  display: block;
+  padding: 0 4px;
+}
+
 #info {
-  color: $muted;
+  color: var(--muted);
   font-size: 20px;
   text-align: center;
-  min-height: 1.5em;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Lyric Transcriber — title/controls 25%, transcript 75% of the content area.
+.lyric-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.lyric-page-top {
+  flex: 0 0 25%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+
+  .page-title {
+    margin: 0 auto;
+    font-size: clamp(22px, 4.5vh, 36px);
+  }
+
+  .page-title-bar {
+    height: 8px;
+
+    &:first-child {
+      margin-bottom: 6px;
+    }
+
+    &:last-child {
+      margin-top: 6px;
+    }
+  }
+}
+
+.lyric-page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  position: relative;
+
+  #div_language {
+    padding: 0;
+  }
+
+  .right {
+    position: absolute;
+    right: 0;
+  }
+}
+
+.lyric-page #results {
+  flex: 0 0 75%;
+  min-height: 0;
+  height: auto;
 }
 
 #results {
-  border: 1px solid $border;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background-color: #fff;
-  font-size: 14px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 24px;
   font-weight: bold;
-  min-height: 150px;
+  line-height: 1.35;
+  overflow-y: auto;
   padding: 15px;
   text-align: left;
   white-space: pre-wrap;
@@ -223,8 +450,135 @@ h1 {
 
 #select_language {
   padding: 6px 10px;
-  border: 1px solid $border;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background-color: #fff;
+  background-color: var(--surface);
+  color: var(--text);
   font-size: 14px;
+}
+
+// Punchline page — manual TTS studio controls.
+.tts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.tts-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tts-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tts-value {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.tts-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.tts-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.tts-field input[type='range'] {
+  width: 100%;
+  accent-color: $brand-red;
+}
+
+.tts-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tts-button {
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--hover);
+  }
+}
+
+.tts-button-primary {
+  background-color: var(--button-primary-bg);
+  border-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+
+  &:hover {
+    background-color: var(--button-primary-hover);
+  }
+}
+
+// Settings page.
+.settings-form {
+  margin-top: 8px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--surface);
+  cursor: pointer;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-row-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-row-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settings-toggle {
+  width: 44px;
+  height: 24px;
+  accent-color: $brand-red;
+  cursor: pointer;
+  flex-shrink: 0;
 }
