@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
+import JokePage from './pages/JokePage.jsx';
 import SpeechRecognitionPage from './pages/SpeechRecognitionPage.jsx';
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<SpeechRecognitionPage />} />
+          <Route path="/joke" element={<JokePage />} />
         </Routes>
       </main>
     </div>

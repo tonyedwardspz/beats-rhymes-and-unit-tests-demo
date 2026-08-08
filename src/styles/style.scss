@@ -1,8 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+
 $text: #1a1a1a;
 $muted: #808080;
 $blue: #33f;
 $border: #ddd;
 $bg: #fafafa;
+$brand-red: #e10600;
 
 * {
   box-sizing: border-box;
@@ -15,7 +18,7 @@ body {
   color: $text;
 }
 
-$sidebar-width: 260px;
+$sidebar-width: 280px;
 $topbar-height: 56px;
 
 .layout {
@@ -99,20 +102,56 @@ $topbar-height: 56px;
 }
 
 .sidebar-header {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: $topbar-height;
-  padding: 0 12px 0 20px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 40px 16px 20px;
   border-bottom: 1px solid $border;
 }
 
-.sidebar-title {
-  font-size: 18px;
-  font-weight: 600;
+// Run-DMC–inspired stacked brand mark for the talk title.
+.brand-mark {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 200px;
+  color: #000;
+  font-family: 'Archivo Black', 'Arial Black', Impact, sans-serif;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.brand-mark-bar {
+  display: block;
+  height: 10px;
+  background-color: $brand-red;
+  flex-shrink: 0;
+
+  &:first-child {
+    margin-bottom: 6px;
+  }
+
+  &:last-child {
+    margin-top: 6px;
+  }
+}
+
+.brand-mark-line {
+  display: block;
+  font-size: 28px;
+  white-space: nowrap;
 }
 
 .sidebar-close {
+  position: absolute;
+  top: 8px;
+  right: 4px;
   border: 0;
   background-color: transparent;
   font-size: 28px;
@@ -165,6 +204,10 @@ a:hover {
   text-align: center;
 }
 
+.muted {
+  color: $muted;
+}
+
 .final {
   color: $text;
   padding-right: 3px;
@@ -197,7 +240,8 @@ h1 {
   background-color: #fff;
   font-size: 14px;
   font-weight: bold;
-  min-height: 150px;
+  height: 75vh;
+  overflow-y: auto;
   padding: 15px;
   text-align: left;
   white-space: pre-wrap;
@@ -227,4 +271,85 @@ h1 {
   border-radius: 6px;
   background-color: #fff;
   font-size: 14px;
+}
+
+// Joke page — manual TTS studio controls.
+.tts-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.tts-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tts-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.tts-value {
+  font-weight: 400;
+  color: $muted;
+  margin-left: 4px;
+}
+
+.tts-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 15px;
+  line-height: 1.4;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.tts-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+}
+
+.tts-field input[type='range'] {
+  width: 100%;
+  accent-color: $brand-red;
+}
+
+.tts-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tts-button {
+  padding: 10px 20px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.tts-button-primary {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+
+  &:hover {
+    background-color: #222;
+  }
 }

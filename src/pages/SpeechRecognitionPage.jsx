@@ -4,11 +4,9 @@ import LanguageSelect from '../components/LanguageSelect.jsx';
 import MicButton from '../components/MicButton.jsx';
 import Results from '../components/Results.jsx';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition.js';
-import { DEFAULT_JOKE } from '../lib/jokes.js';
 
 export default function SpeechRecognitionPage() {
   const [language, setLanguage] = useState('en-GB');
-  const [joke] = useState(DEFAULT_JOKE);
   const finalRef = useRef(null);
 
   const {
@@ -19,11 +17,11 @@ export default function SpeechRecognitionPage() {
     infoKey,
     micSrc,
     toggle,
-  } = useSpeechRecognition({ language, joke, finalRef });
+  } = useSpeechRecognition({ language, finalRef });
 
   return (
     <>
-      <h1 className="center">Beats, Rhymes &amp; Unit Tests</h1>
+      <h1 className="center">Lyric Transcriber</h1>
 
       <InfoMessages infoKey={infoKey} />
 

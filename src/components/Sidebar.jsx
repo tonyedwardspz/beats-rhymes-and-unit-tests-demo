@@ -1,7 +1,10 @@
 import { NavLink } from 'react-router-dom';
 
 // Add future pages here and they'll automatically appear in the flyout menu.
-const NAV_ITEMS = [{ to: '/', label: 'Speech to Text', end: true }];
+const NAV_ITEMS = [
+  { to: '/', label: 'Lyric Transcriber', end: true },
+  { to: '/joke', label: 'Joke' },
+];
 
 export default function Sidebar({ open, onClose }) {
   return (
@@ -17,7 +20,14 @@ export default function Sidebar({ open, onClose }) {
         aria-label="Main menu"
       >
         <div className="sidebar-header">
-          <span className="sidebar-title">Menu</span>
+          <div className="brand-mark" aria-label="Beats, Rhymes and Unit Tests">
+            <span className="brand-mark-bar" aria-hidden="true" />
+            <span className="brand-mark-line">BEATS</span>
+            <span className="brand-mark-line">RHYMES</span>
+            <span className="brand-mark-line">AND</span>
+            <span className="brand-mark-line">UNIT TESTS</span>
+            <span className="brand-mark-bar" aria-hidden="true" />
+          </div>
           <button
             type="button"
             className="sidebar-close"

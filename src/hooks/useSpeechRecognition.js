@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { JOKES, speak } from '../lib/jokes.js';
 
 // Keys map to the informational messages rendered by <InfoMessages />.
 export const INFO = {
@@ -31,11 +30,10 @@ const SpeechRecognition =
  *
  * @param {Object}  options
  * @param {string}  options.language  BCP-47 language tag (e.g. "en-GB").
- * @param {string}  options.joke      Key into the JOKES map for the active joke.
  * @param {Object}  options.finalRef  Ref to the element holding the final transcript
  *                                    (used to select the text when recognition ends).
  */
-export function useSpeechRecognition({ language, joke, finalRef }) {
+export function useSpeechRecognition({ language, finalRef }) {
   const supported = Boolean(SpeechRecognition);
 
   const [recognizing, setRecognizing] = useState(false);
@@ -48,21 +46,16 @@ export function useSpeechRecognition({ language, joke, finalRef }) {
   const ignoreOneEndRef = useRef(false);
   const timeStampRef = useRef(0);
   const finalTranscriptRef = useRef('');
-  const doneJokeRef = useRef(false);
 
-  // Keep the latest language/joke available to the recognition callbacks,
+  // Keep the latest language available to the recognition callbacks,
   // which are only assigned once but need current values.
   const languageRef = useRef(language);
-  const jokeRef = useRef(joke);
   useEffect(() => {
     languageRef.current = language;
     if (recognitionRef.current) {
       recognitionRef.current.lang = language;
     }
   }, [language]);
-  useEffect(() => {
-    jokeRef.current = joke;
-  }, [joke]);
 
   useEffect(() => {
     if (!supported) {
@@ -130,12 +123,6 @@ export function useSpeechRecognition({ language, joke, finalRef }) {
       finalTranscriptRef.current = capitalize(finalTranscriptRef.current);
       setFinalTranscript(finalTranscriptRef.current);
       setInterimTranscript(interim);
-
-      const active = JOKES[jokeRef.current];
-      if (active && !doneJokeRef.current && interim.includes(active.trigger)) {
-        speak(active.message);
-        doneJokeRef.current = true;
-      }
     };
 
     return () => {
@@ -153,24 +140,20 @@ export function useSpeechRecognition({ language, joke, finalRef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supported]);
 
-  const start = useCallback(
-    (event) => {
-      const recognition = recognitionRef.current;
-      if (!recognition) {
-        return;
-      }
-      finalTranscriptRef.current = '';
-      doneJokeRef.current = false;
-      recognition.start();
-      ignoreOneEndRef.current = false;
-      setFinalTranscript('');
-      setInterimTranscript('');
-      setMicSrc(MIC.STARTING);
-      setInfoKey(INFO.ALLOW);
-      timeStampRef.current = event?.timeStamp ?? 0;
-    },
-    []
-  );
+  const start = useCallback((event) => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      return;
+    }
+    finalTranscriptRef.current = '';
+    recognition.start();
+    ignoreOneEndRef.current = false;
+    setFinalTranscript('');
+    setInterimTranscript('');
+    setMicSrc(MIC.STARTING);
+    setInfoKey(INFO.ALLOW);
+    timeStampRef.current = event?.timeStamp ?? 0;
+  }, []);
 
   const stop = useCallback(() => {
     recognitionRef.current?.stop();
